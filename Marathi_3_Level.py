@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[35]:
 
 
 # The path to the local git repo for Indic NLP library
@@ -10,18 +10,36 @@ INDIC_NLP_LIB_HOME=r"/Users/mayuresh/Desktop/indic_nlp_library"
 # The path to the local git repo for Indic NLP Resources
 INDIC_NLP_RESOURCES=r"/Users/mayuresh/Desktop/indic_nlp_resources"
 
+import sys
 import pandas as pd
 import numpy as np
 import warnings
-import warnings
+import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
+from tqdm import tqdm
 
-import sys
-sys.path.append(r'{}'.format(INDIC_NLP_LIB_HOME))
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC, LinearSVC
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report,plot_confusion_matrix
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from indicnlp import common
-common.set_resources_path(INDIC_NLP_RESOURCES)
 from indicnlp import loader
+from indicnlp.tokenize import indic_tokenize
+from indicnlp.tokenize import indic_tokenize 
+from indicnlp.morph import unsupervised_morph 
+from indicnlp import common
+
+sys.path.append(r'{}'.format(INDIC_NLP_LIB_HOME))
+
+common.set_resources_path(INDIC_NLP_RESOURCES)
+
 loader.load()
 
 
@@ -52,7 +70,7 @@ level_C = training_dataset.query("subtask_b == 'TIN'")[["subtask_c"]]
 # In[5]:
 
 
-from indicnlp.tokenize import indic_tokenize  
+
 
 
 # In[6]:
@@ -86,16 +104,15 @@ tweets = list(iterator_map)
 # In[20]:
 
 
-from indicnlp.tokenize import indic_tokenize  
-import copy
+
+
 collective_tweets = copy.deepcopy(training_dataset)
 
 
 # In[21]:
 
 
-from indicnlp.morph import unsupervised_morph 
-from indicnlp import common
+
 
 analyzer=unsupervised_morph.UnsupervisedMorphAnalyzer('mr')
 
@@ -114,7 +131,7 @@ def morph(tweet):
 # In[23]:
 
 
-from tqdm import tqdm
+
 
 
 # In[24]:
@@ -128,18 +145,7 @@ collective_tweets["tokens"] = collective_tweets['tweet'].progress_apply(morph)
 # In[25]:
 
 
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC, LinearSVC
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report,plot_confusion_matrix
-from sklearn.model_selection import GridSearchCV
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC, LinearSVC
-from sklearn.naive_bayes import GaussianNB, MultinomialNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 
 # In[26]:
