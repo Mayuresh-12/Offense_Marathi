@@ -1,1 +1,5 @@
 # Offense_Marathi
+
+The use of social media in the current days has risen exponentially, with hundreds of millions of smart devices being used all around the world. Through social media networks, terabytes of data is being processed and used on a daily basis in the form of posts and comments. This information can range from something as basic as a person's pet to comments on politics and world leaders. As there is a vast difference in cultures, languages, thoughts across the world, there is disagreement on posts about delicate matters. This leads to a wide variety of offensive posts in the form of hate speech and much more. These offensive posts are leading to a spectrum of problems ranging from mental depression in youngsters to political unrest and protests in many countries.
+
+Studies in the past have been based on English, however, we are working on Marathi and other Indo-Aryan Languages. These languages are termed as 'low resource languages' because of the low amount of data available. 
