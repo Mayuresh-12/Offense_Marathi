@@ -244,7 +244,7 @@ print("Training begins on Level C classification...")
 warnings.filterwarnings(action='ignore')
 
 ## Creating an object of SVC
-classifiermlp = MLPClassifier()
+classifiermlp = MLPClassifier(max_iter = 300)
 
 
 
