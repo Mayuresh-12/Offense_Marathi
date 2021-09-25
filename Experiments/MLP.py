@@ -28,7 +28,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+from sklearn.neural_network import MLPClassifier
 from indicnlp import common
 from indicnlp import loader
 from indicnlp.tokenize import indic_tokenize
@@ -46,7 +46,7 @@ loader.load()
 # In[2]:
 
 
-training_dataset = pd.read_csv("/Users/mayureshnene/Desktop/MOLD/Mold/MOLD_Training2.csv")
+training_dataset = pd.read_csv("/Users/mayuresh/Desktop/MOLD/Mold/MOLD_Training2.csv")
 training_dataset.head()
 training_dataset.dropna()
 training_dataset['subtask_c'].fillna("NULL")
@@ -271,7 +271,7 @@ print("Training begins on Level B classification...")
 warnings.filterwarnings(action='ignore')
 
 ## Creating an object of SVC
-classifiersvc = SVC()
+classifiersvc = MLPClassifier(max_iter = 300)
 
 dt = DecisionTreeClassifier()
 
