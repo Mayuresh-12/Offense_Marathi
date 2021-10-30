@@ -127,36 +127,6 @@ def morph(tweet):
     analyzed_tokens=analyzer.morph_analyze_document(str(tweet).split(' '))
     return analyzed_tokens
 
-
-# In[ ]:
-
-
-
-
-
-# In[48]:
-
-
-tqdm.pandas(desc="Tokenize..")
-#all_tweets["tokens"] = all_tweets['tweet'].progress_apply(tokenize)
-collective_tweets["tokens"] = collective_tweets['tweet'].progress_apply(morph)
-
-
-# In[ ]:
-
-
-
-
-
-# In[49]:
-
-
-vector = collective_tweets["tokens"].tolist()
-
-
-# In[50]:
-
-
 def tfid_vectorizer(vector):
 	## Creates and stores an instance of the TfidfVectorizer class. This will be used further to extract our data as tf-idf features.
 	vectorizer = TfidfVectorizer()
@@ -185,6 +155,15 @@ def get_vectors(vectors, labels, keyword):
 	return result
 
 
+tqdm.pandas(desc="Tokenize..")
+#all_tweets["tokens"] = all_tweets['tweet'].progress_apply(tokenize)
+collective_tweets["tokens"] = collective_tweets['tweet'].progress_apply(morph)
+
+vector = collective_tweets["tokens"].tolist()
+
+
+
+
 # In[51]:
 
 
@@ -201,8 +180,10 @@ vectors_level_c = get_vectors(vectors_level_B, labels_level_b, "TIN")
 labels_level_c = level_C['subtask_c'].values.tolist() 
 
 
-# In[69]:
 
+
+
+# MODELS BELOW
 
 train_vectors_level_A, train_labels_level_A,= vectors_level_A[1:2660], labels_level_a[1:2660]
 test_vectors_level_A, test_labels_level_A = vectors_level_A[2661:3135], labels_level_a[2661:3135]
