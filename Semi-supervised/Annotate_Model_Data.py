@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[38]:
+# In[48]:
 
 
 # The path to the local git repo for Indic NLP library
@@ -18,6 +18,7 @@ import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
+import re
 
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC, LinearSVC
@@ -28,6 +29,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -45,28 +47,36 @@ common.set_resources_path(INDIC_NLP_RESOURCES)
 loader.load()
 
 
-# In[39]:
+# In[49]:
 
 
-training_dataset = pd.read_csv("/Users/mayureshnene/Desktop/MOLD/Mold/MOLD_Training2.csv")
-training_dataset.head()
-training_dataset.dropna()
-training_dataset['subtask_c'].fillna("NULL")
+training_dataset = pd.read_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Data/Pseudo_labelled_A.csv")
+#training_dataset.dropna()
+training_dataset.fillna("NULL")
 
 
-# In[40]:
+# In[50]:
 
 
 tweets = training_dataset["tweet"]
 tweets
 
 
-# In[41]:
+# In[51]:
 
 
 level_A = training_dataset[["subtask_a"]]
-level_B = training_dataset.query("subtask_a == 'Offensive'")[["subtask_b"]]
-level_C = training_dataset.query("subtask_b == 'TIN'")[["subtask_c"]]
+# level_B = training_dataset.query("subtask_a == 'Offensive'")[["subtask_b"]]
+# level_C = training_dataset.query("subtask_b == 'TIN'")[["subtask_c"]]
+level_B_indices = training_dataset.index[training_dataset['subtask_a'] == "Offensive"].tolist()
+level_C_indices = training_dataset.index[training_dataset['subtask_b'] == "TIN"].tolist()
+
+
+# In[52]:
+
+
+level_B = training_dataset["subtask_b"][level_B_indices]
+level_C = training_dataset["subtask_c"][level_C_indices]
 
 
 # In[ ]:
@@ -75,7 +85,7 @@ level_C = training_dataset.query("subtask_b == 'TIN'")[["subtask_c"]]
 
 
 
-# In[42]:
+# In[53]:
 
 
 stopwords_file = open("/Users/mayureshnene/Desktop/MOLD/Mold/stopwords.txt")
@@ -83,18 +93,24 @@ stopwords = stopwords_file.read().splitlines()
 print(stopwords)
 
 
-# In[43]:
+# In[54]:
 
 
-def clean(tweet):
-    removal_list = ['URL','\'ve','n\'t','\'s','\'m','!']
-    for element in removal_list:
-        tweet = str(tweet).replace(element,'')
+def clean(row):
+    row = str(row)
+#     removal_list = ['URL','\'ve','n\'t','\'s','\'m','!']
+#     for element in removal_list:
+#         row = row.replace(element,'')
     
-    return tweet
+    row = row.replace('http\S+|www.\S+', '')
+    row = re.sub("@[A-Za-z0-9]+","@USER",row)
+    row = re.sub("[A-Za-z0-9]+","",row)
+    row = re.sub("@","@USER",row)
+    row = re.sub('[+,-,_,=,/,<,>,!,#,$,%,^,&,*,\",:,;,.,' ',\t,\r,\n,\',|]','',row)
+    return row
 
 
-# In[44]:
+# In[55]:
 
 
 # for tweet in tweets:
@@ -103,7 +119,7 @@ iterator_map = map(clean,tweets)
 tweets = list(iterator_map)
 
 
-# In[45]:
+# In[56]:
 
 
 
@@ -111,7 +127,7 @@ tweets = list(iterator_map)
 collective_tweets = copy.deepcopy(training_dataset)
 
 
-# In[46]:
+# In[57]:
 
 
 
@@ -119,7 +135,7 @@ collective_tweets = copy.deepcopy(training_dataset)
 analyzer=unsupervised_morph.UnsupervisedMorphAnalyzer('mr')
 
 
-# In[47]:
+# In[58]:
 
 
 def tokenize(tweet):
@@ -136,7 +152,7 @@ def morph(tweet):
 
 
 
-# In[48]:
+# In[59]:
 
 
 tqdm.pandas(desc="Tokenize..")
@@ -150,13 +166,13 @@ collective_tweets["tokens"] = collective_tweets['tweet'].progress_apply(morph)
 
 
 
-# In[49]:
+# In[60]:
 
 
 vector = collective_tweets["tokens"].tolist()
 
 
-# In[50]:
+# In[61]:
 
 
 def tfid_vectorizer(vector):
@@ -187,120 +203,98 @@ def get_vectors(vectors, labels, keyword):
 	return result
 
 
-# In[51]:
+# In[62]:
 
 
 vectors_level_A = tfid_vectorizer(vector)
 labels_level_a = level_A['subtask_a'].values.tolist()
 vectors_level_B = get_vectors(vectors_level_A, labels_level_a, "Offensive") 
 
-labels_level_b = level_B['subtask_b'].values.tolist() 
+vectors_level_B
+
+labels_level_b = level_B.values.tolist() 
 
 ## Numerical Vectors C
 vectors_level_c = get_vectors(vectors_level_B, labels_level_b, "TIN") 
 
 ##Subtask C Labels
-labels_level_c = level_C['subtask_c'].values.tolist() 
+labels_level_c = level_C.values.tolist() 
 
 
-# In[69]:
+# In[63]:
 
 
-train_vectors_level_A, train_labels_level_A,= vectors_level_A[1:2660], labels_level_a[1:2660]
-test_vectors_level_A, test_labels_level_A = vectors_level_A[2661:3135], labels_level_a[2661:3135]
-## Extracting names of labels and storing them in a variable
-classNames = np.unique(test_labels_level_A)
+# train_vectors_level_A, train_labels_level_A,= vectors_level_A[1:3097], labels_level_a[1:3097]
+# test_vectors_level_A, test_labels_level_A = vectors_level_A[3097:], labels_level_a[3097:]
+# ## Extracting names of labels and storing them in a variable
+# classNames = np.unique(test_labels_level_A)
 
-print("Training begins on Level A classification...")
-warnings.filterwarnings(action='ignore')
+# print("Training begins on Level A classification...")
+# warnings.filterwarnings(action='ignore')
 
-## Creating an object of SVC
-classifiersvc = SVC()
-classifiermnb = MultinomialNB()
-classifiersgd = SGDClassifier()
-classifiermlp = MLP()
-
-classifiersvc.fit(train_vectors_level_A, train_labels_level_A)
-classifiermnb.fit(train_vectors_level_A, train_labels_level_A)
-classifiersgd.fit(train_vectors_level_A, train_labels_level_A)
-classifiermlp.fit(train_vectors_level_A, train_labels_level_A)
-
-accuracy = accuracy_score(train_labels_level_A, classifiersvc.predict(train_vectors_level_A))
-print("Training Accuracy:", accuracy)
+# ## Creating an object of SVC, MNB, SGD, MLP
+# classifiersvc = SVC()
+# classifiermnb = MultinomialNB()
+# classifiersgd = SGDClassifier()
+# classifiermlp = MLPClassifier()
 
 
-test_predictions_svc = classifiersvc.predict(test_vectors_level_A)
-test_predictions_mnb = classifiermnb.predict(test_vectors_level_A)
-test_predictions_sgd = classifiersgd.predict(test_vectors_level_A)
-test_predictions_mlp = classifiermlp.predict(test_vectors_level_A)
+# ## Fit on Level A
+# classifiersvc.fit(train_vectors_level_A, train_labels_level_A)
+# classifiermnb.fit(train_vectors_level_A, train_labels_level_A)
+# classifiersgd.fit(train_vectors_level_A, train_labels_level_A)
+# classifiermlp.fit(train_vectors_level_A, train_labels_level_A)
 
 
-test_predictions_svc = classifiersvc.predict(test_vectors_level_A)
-test_predictions_mnb = classifiermnb.predict(test_vectors_level_A)
-test_predictions_sgd = classifiersgd.predict(test_vectors_level_A)
-test_predictions_mlp = classifiermlp.predict(test_vectors_level_A)
+# ## Predict on Level A
+# test_predictions_A_svc = classifiersvc.predict(test_vectors_level_A)
+# test_predictions_A_mnb = classifiermnb.predict(test_vectors_level_A)
+# test_predictions_A_sgd = classifiersgd.predict(test_vectors_level_A)
+# test_predictions_A_mlp = classifiermlp.predict(test_vectors_level_A)
+
+# preds_A = pd.DataFrame(columns = ['SVC_A', 'MNB_A', 'SGD_A','MLP_A'])
+# label_name = ['SVC_A', 'MNB_A','SGD_A','MLP_A']
+# preds = [test_predictions_A_svc, test_predictions_A_mnb, test_predictions_A_sgd, test_predictions_A_mlp]
+
+# i = 0
+# for label in label_name:
+#     preds_A[label] = preds[i]
+#     i += 1
 
 
-preds_A = pd.DataFrame(columns = ['SVC_A', 'MNB_A', 'SGD_A','MLP_A'])
-label_name = ['SVC_A', 'MNB_A','SGD_A','MLP_A']
-preds = [test_predictions_svc, test_predictions_mnb, test_predictions_sgd, test_predictions_mlp]
-
-i = 0
-for label in label_name:
-    preds_A[label] = test_predictions[i]
-    i += 1
+# preds_A.to_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Experiments/Level_A_Annotated.csv")
 
 
-# In[70]:
+# In[64]:
 
 
 ## Split into Train and Test vectors using the vectors of level A and Labels of level B with a training size of 0.75.
-train_vectors_level_B, test_vectors_level_B, train_labels_level_B, test_labels_level_B = train_test_split(vectors_level_B[:], labels_level_b[:], train_size=0.75)
+
+train_vectors_level_B, train_labels_level_B,= vectors_level_B[1:1065], labels_level_b[1:1065]
+test_vectors_level_B, test_labels_level_B = vectors_level_B[1065:2420], labels_level_b[1065:2420]
 
 ## Extracting names of labels and storing them in a variable
 classNames = np.unique(test_labels_level_B)
 print("Training begins on Level B classification...")
 warnings.filterwarnings(action='ignore')
 
-## Creating an object of SVC
+## Creating an object of SVC, MNB, SGD, MLP
 classifiersvc = SVC()
 classifiermnb = MultinomialNB()
 classifiersgd = SGDClassifier()
-classifiermlp = MLP()
+classifiermlp = MLPClassifier()
 
+## Fit on Level B
 classifiersvc.fit(train_vectors_level_B, train_labels_level_B)
 classifiermnb.fit(train_vectors_level_B, train_labels_level_B)
 classifiersgd.fit(train_vectors_level_B, train_labels_level_B)
 classifiermlp.fit(train_vectors_level_B, train_labels_level_B)
 
-print("Training complete....")
-
-
-print("calculating accuracy....")
-## Training accuracy has been calculated
-accuracy = accuracy_score(train_labels_level_B, classifiersvc.predict(train_vectors_level_B))
-print("Training Accuracy:", accuracy)
-
-## predictions are obtained on the testing data set
-test_predictionsB = classifiersvc.predict(test_vectors_level_B)
-
-## Testing accuracy has been calculated
-accuracy = accuracy_score(test_labels_level_B, test_predictionsB)
-print("Test Accuracy:", accuracy)
-
-print("Confusion Matrix:")
-## confusion matrix has been obtained for level A classification
-matrix_level_B = confusion_matrix(test_labels_level_B, test_predictionsB)
-print(matrix_level_B)
-## Obtaining classification report for the test data set
-print(classification_report(test_labels_level_B,test_predictionsB))
-
-## Plotting confusion matrix for better visualization
-plottedCM_Level_B = plot_confusion_matrix(classifiersvc, test_vectors_level_B, test_labels_level_B, display_labels=classNames, cmap=plt.cm.Blues)
-plt.show()
-
-
-
+## Predict on Level B
+test_predictions_B_svc = classifiersvc.predict(test_vectors_level_B)
+test_predictions_B_mnb = classifiermnb.predict(test_vectors_level_B)
+test_predictions_B_sgd = classifiersgd.predict(test_vectors_level_B)
+test_predictions_B_mlp = classifiermlp.predict(test_vectors_level_B)
 
 
 ## Split into Train and Test vectors using the vectors of level A and Labels of level B with a training size of 0.75.
@@ -311,105 +305,80 @@ classNames = np.unique(test_labels_level_C)
 print("Training begins on Level C classification...")
 warnings.filterwarnings(action='ignore')
 
-## Creating an object of SVC
+## Creating an object of SVC, MNB, SGD, MLP
 classifiersvc = SVC()
+classifiermnb = MultinomialNB()
+classifiersgd = SGDClassifier()
+classifiermlp = MLPClassifier()
 
-## Creating a parameter grid using the arguments SVC uses for hyper parameter tuning using GridSearchCV
-param_grid = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],'C': [1, 10, 100, 1000]}]
-
-
-# Model fit
+## Fit on Level C
 classifiersvc.fit(train_vectors_level_C, train_labels_level_C)
-
-print("Training complete....")
-
-
-print("calculating accuracy....")
-## Training accuracy has been calculated
-accuracy = accuracy_score(train_labels_level_C, classifiersvc.predict(train_vectors_level_C))
-print("Training Accuracy:", accuracy)
-
-## predictions are obtained on the testing data set
-test_predictionsC = classifiersvc.predict(test_vectors_level_C)
-
-## Testing accuracy has been calculated
-accuracy = accuracy_score(test_labels_level_C, test_predictionsC)
-print("Test Accuracy:", accuracy)
+classifiermnb.fit(train_vectors_level_C, train_labels_level_C)
+classifiersgd.fit(train_vectors_level_C, train_labels_level_C)
+classifiermlp.fit(train_vectors_level_C, train_labels_level_C)
 
 
-print("Confusion Matrix:")
-## confusion matrix has been obtained for level A classification
-matrix_level_C = confusion_matrix(test_labels_level_C, test_predictionsC)
-print(matrix_level_C)
-## Obtaining classification report for the test data set
-print(classification_report(test_labels_level_C,test_predictionsC))
 
-## plotting confusion matrix for better visualization
-plottedCM = plot_confusion_matrix(classifiersvc, test_vectors_level_C, test_labels_level_C, display_labels=classNames, cmap=plt.cm.Blues)
-plt.show()
+## Predict on Level C
+test_predictions_C_svc = classifiersvc.predict(test_vectors_level_C)
+test_predictions_C_mnb = classifiermnb.predict(test_vectors_level_C)
+test_predictions_C_sgd = classifiersgd.predict(test_vectors_level_C)
+test_predictions_C_mlp = classifiermlp.predict(test_vectors_level_C)
+
+
+# In[65]:
+
+
+preds_B = pd.DataFrame(columns = ['SVC_B', 'MNB_B', 'SGD_B','MLP_B'])
+label_name = ['SVC_B', 'MNB_B','SGD_B','MLP_B']
+preds = [test_predictions_B_svc, test_predictions_B_mnb, test_predictions_B_sgd, test_predictions_B_mlp]
+
+i = 0
+for label in label_name:
+    preds_B[label] = preds[i]
+    i += 1
+    
+preds_B.to_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Experiments/Level_B_Annotated.csv")
 
 
 # In[ ]:
 
 
-test_predictions_svc = classifiersvc.predict(test_vectors_level_B)
-test_predictions_mnb = classifiermnb.predict(test_vectors_level_B)
-test_predictions_sgd = classifiersgd.predict(test_vectors_level_B)
-test_predictions_mlp = classifiermlp.predict(test_vectors_level_B)
-
-
-preds_B = pd.DataFrame(columns = ['SVC_B', 'MNB_B', 'SGD_B','MLP_B'])
-label_name = ['SVC_B', 'MNB_B','SGD_B','MLP_B']
-preds = [test_predictions_svc, test_predictions_mnb, test_predictions_sgd, test_predictions_mlp]
-
-i = 0
-for label in label_name:
-    preds_B[label] = test_predictions[i]
-    i += 1
-
-
-# In[71]:
 
 
 
-
-
-# In[72]:
-
-
-test_predictions_svc = classifiersvc.predict(test_vectors_level_C)
-test_predictions_mnb = classifiermnb.predict(test_vectors_level_C)
-test_predictions_sgd = classifiersgd.predict(test_vectors_level_C)
-test_predictions_mlp = classifiermlp.predict(test_vectors_level_C)
+# In[66]:
 
 
 preds_C = pd.DataFrame(columns = ['SVC_C', 'MNB_C', 'SGD_C','MLP_C'])
 label_name = ['SVC_C', 'MNB_C','SGD_C','MLP_C']
-preds = [test_predictions_svc, test_predictions_mnb, test_predictions_sgd, test_predictions_mlp]
+preds = [test_predictions_C_svc, test_predictions_C_mnb, test_predictions_C_sgd, test_predictions_C_mlp]
 
 i = 0
 for label in label_name:
-    preds_C[label] = test_predictions[i]
+    preds_C[label] = preds[i]
     i += 1
 
+preds_C.to_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Experiments/Level_C_Annotated.csv")
 
-# In[76]:
+
+# In[67]:
 
 
 #final_df = pd.DataFrame()
-final_df = pd.concat([preds_A, preds_B, preds_C], ignore_index=True, sort=False)
+final_df = pd.concat([preds_A, preds_B, preds_C], ignore_index=True)
 
 
-# In[77]:
+# In[68]:
 
 
 final_df
 
 
-# In[78]:
+# In[69]:
 
 
-final_df.to_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Experiments/SVC_data_annotated.csv")
+#final_df.to_csv("/Users/mayureshnene/Desktop/Mayuresh/Offense_Marathi/Experiments/Data_annotated.csv")
 
 
 # In[ ]:
