@@ -179,7 +179,7 @@ def word_clouds(tweets):
 
 
 def main():
-    train_filename = './Data/Marathi_Train.csv'
+    train_filename = '../Data/Marathi_Train.csv'
 
     train_data = read_data(train_filename)
     word_clouds(train_data[['Tweet']])
@@ -193,7 +193,7 @@ def main():
     # x_test.dropna()
     # y_test.dropna()
     
-    test_filename = './Data/Marathi_Test.csv'
+    test_filename = '../Data/Marathi_Test.csv'
     test_data = read_data(test_filename)
     test_data = test_data[['Tweet', 'Class']]
     test_data = test_data[test_data['Class'].notna()]
