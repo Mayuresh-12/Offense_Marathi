@@ -58,10 +58,10 @@ def train_test_TFIDF(train_data, test_data, model):
     print("TFIDF + ", model)
     model = make_pipeline(TfidfVectorizer(ngram_range=(1, 5)), model)
 
-    X_train = train_data['tweet'].values.astype('U')
+    X_train = train_data['Tweet'].values.astype('U')
     y_train = train_data['subtask_a'].values.astype('U')
 
-    X_test = test_data['tweet'].values.astype('U')
+    X_test = test_data['Tweet'].values.astype('U')
     y_test = test_data['subtask_a'].values.astype('U')
 
     model.fit(X_train, y_train)
@@ -84,10 +84,10 @@ def train_test_TFIDF(train_data, test_data, model):
 def train_test_LDA(train_data, test_data, model):
     print("TFIDF + ", model)
     model = make_pipeline(CountVectorizer(), LDA(), model)
-    X_train = train_data['tweet'].values.astype('U')
+    X_train = train_data['Tweet'].values.astype('U')
     y_train = train_data['subtask_a'].values.astype('U')
 
-    X_test = test_data['tweet'].values.astype('U')
+    X_test = test_data['Tweet'].values.astype('U')
     y_test = test_data['subtask_a'].values.astype('U')
     model.fit(X_train, y_train)
     labels = model.predict(X_test)
@@ -102,10 +102,10 @@ def train_test_LDA(train_data, test_data, model):
 def train_test_BOW(train_data, test_data, model):
     print("TFIDF + ", model)
     model = make_pipeline(CountVectorizer(ngram_range=(1, 1)), model)
-    X_train = train_data['tweet'].values.astype('U')
+    X_train = train_data['Tweet'].values.astype('U')
     y_train = train_data['subtask_a'].values.astype('U')
 
-    X_test = test_data['tweet'].values.astype('U')
+    X_test = test_data['Tweet'].values.astype('U')
     y_test = test_data['subtask_a'].values.astype('U')
     model.fit(X_train, y_train)
     labels = model.predict(X_test)
@@ -118,12 +118,12 @@ def train_test_BOW(train_data, test_data, model):
 
     print("\n\n")
 
-def word_clouds(tweets):
+def word_clouds(Tweets):
     comment_words = ""
     map_of_words = {}
-    for tweet in tweets:
-        # comment_words += tweet + " "
-        for word in str(tweet).split(" "):
+    for Tweet in Tweets:
+        # comment_words += Tweet + " "
+        for word in str(Tweet).split(" "):
             if word in map_of_words and word is not None and word != "" :
                 map_of_words[word] += 1
             else:
@@ -145,16 +145,16 @@ def word_clouds(tweets):
 
 
 def main():
-    train_filename = 'Data/TrainingDataset.csv'
+    train_filename = '../Data/Marathi_Train.csv'
 
     train_data = read_data(train_filename)
-    #word_clouds(train_data['tweet'])
-    train_data = train_data[['tweet', 'subtask_a']]
+    #word_clouds(train_data['Tweet'])
+    train_data = train_data[['Tweet', 'subtask_a']]
     train_data = train_data[train_data['subtask_a'].notna()]
 
-    test_filename = 'Data/TestingDataset.csv'
+    test_filename = '../Data/Marathi_Test.csv'
     test_data = read_data(test_filename)
-    test_data = test_data[['tweet', 'subtask_a']]
+    test_data = test_data[['Tweet', 'subtask_a']]
     test_data = test_data[test_data['subtask_a'].notna()]
 
 
@@ -200,7 +200,7 @@ def main():
     # train_test_TFIDF(train_data, test_data, dt_random)
     # print(dt_random.best_params_)
     # print("end of DTC")
-    # print(learning_curve(DT,train_data['tweet'],train_data['subtask_a'],cv=5 ,scoring='accuracy'))
+    # print(learning_curve(DT,train_data['Tweet'],train_data['subtask_a'],cv=5 ,scoring='accuracy'))
 
 
     MNB = MultinomialNB(fit_prior=True)
@@ -211,7 +211,7 @@ def main():
 
     # train_test_TFIDF(train_data, test_data, MNB_random)
     # print(MNB_random.best_params_)
-    # print(learning_curve(MNB_random,train_data['tweet'],train_data['subtask_a'],cv=5 ,scoring='accuracy'))
+    # print(learning_curve(MNB_random,train_data['Tweet'],train_data['subtask_a'],cv=5 ,scoring='accuracy'))
     # print("End of MNB")
 
     SVC_obj = SVC(random_state=42,class_weight='balanced')
@@ -223,7 +223,7 @@ def main():
 
     train_test_TFIDF(train_data, test_data, SVC_random)
     print(SVC_random.best_params_)
-    #print(learning_curve(SVC_random, train_data['tweet'], train_data['subtask_a'], cv=5, scoring='accuracy'))
+    #print(learning_curve(SVC_random, train_data['Tweet'], train_data['subtask_a'], cv=5, scoring='accuracy'))
     # print("End of SVC")
 
 
